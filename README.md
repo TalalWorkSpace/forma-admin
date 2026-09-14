@@ -24,9 +24,17 @@ forma-landing-v5 design system. Dark, RTL, lime.
 Create `assets/js/pages/<name>.js` exporting `meta = {id,label,icon,minRole}` and
 `render()`, then add it to `ROUTES` in `app.js`. The sidebar + role guard update.
 
+## Pages
+- `overview`      - live headcounts, growth, activity, subscription mix (viewer+)
+- `users`         - searchable users list, filter by role (viewer+)
+- `notifications` - broadcast a push to an audience (editor+)
+- `audit`         - admin action log (admin only)
+
 ## Backend
-`supabase/migrations/20260915_admin.sql` (admin_users, my_admin_role,
-require_admin, admin_audit, admin_broadcast, admin_audience_counts).
+- `supabase/migrations/20260915_admin.sql` (admin_users, my_admin_role,
+  require_admin, admin_audit, admin_broadcast, admin_audience_counts).
+- `supabase/migrations/20260915b_admin_reporting.sql` (admin_stats,
+  admin_list_users, admin_audit_log - all read-only, require_admin gated).
 
 ## Deploy (after review)
 GitHub Pages from this folder. Custom domain later: admin.forma-app.sa.

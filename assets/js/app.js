@@ -2,9 +2,13 @@
 // Add a feature = add a page module to ROUTES; the sidebar and guard update.
 import { el, icon, brand, button, field, input, spinnerScreen, toast } from './ui.js';
 import { supabase, signIn, signOut, getSession, myAdminRole } from './api.js';
+import * as overview from './pages/overview.js';
+import * as users from './pages/users.js';
 import * as notifications from './pages/notifications.js';
+import * as audit from './pages/audit.js';
 
-const ROUTES = [notifications];           // ← register future pages here
+// Order = sidebar order; the first the user can see is the landing page.
+const ROUTES = [overview, users, notifications, audit];   // ← register future pages here
 const ROLE_RANK = { viewer: 1, editor: 2, admin: 3 };
 const root = document.getElementById('app');
 

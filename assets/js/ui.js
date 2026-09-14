@@ -22,6 +22,9 @@ const PATHS = {
   check:  '<path d="M20 6 9 17l-5-5"/>',
   alert:  '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+  history:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  refresh:'<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/>',
 };
 export const icon = (name, size = 18) =>
   el('span', { class: 'i', html:
@@ -67,6 +70,22 @@ export function toggle(label, initial = false) {
 }
 
 export const stat = (n, l) => el('div', { class: 'stat' }, el('div', { class: 'n' }, n), el('div', { class: 'l' }, l));
+
+/** Coloured status pill. kind: ok | info | warn (matches .pill.* in CSS). */
+export const pill = (text, kind = 'info') => el('span', { class: `pill ${kind}` }, text);
+
+/**
+ * Data table. cols: [{ key, label, render?(row) }]. Renders inside a
+ * horizontally scrollable wrapper so wide tables never break the phone layout.
+ */
+export function table(cols, rows, { empty = 'لا توجد بيانات' } = {}) {
+  if (!rows || rows.length === 0) return el('div', { class: 'empty' }, empty);
+  return el('div', { class: 'table-wrap' },
+    el('table', { class: 'table' },
+      el('thead', {}, el('tr', {}, ...cols.map(c => el('th', {}, c.label)))),
+      el('tbody', {}, ...rows.map(r =>
+        el('tr', {}, ...cols.map(c => el('td', {}, c.render ? c.render(r) : (r[c.key] ?? '-'))))))));
+}
 
 let toastTimer;
 export function toast(msg, kind = 'ok') {

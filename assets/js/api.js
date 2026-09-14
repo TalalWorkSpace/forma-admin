@@ -39,3 +39,26 @@ export async function broadcast({ title, body, audience, type, includeTest }) {
   if (error) throw error;
   return data;
 }
+
+/** Overview metrics for the dashboard (headcounts, growth, activity, subs). */
+export async function stats(includeTest = false) {
+  const { data, error } = await supabase.rpc('admin_stats', { p_include_test: !!includeTest });
+  if (error) throw error;
+  return data;
+}
+
+/** Users list, newest first. { search, role: all|coach|trainee, limit, includeTest }. */
+export async function listUsers({ search = '', role = 'all', limit = 50, includeTest = false } = {}) {
+  const { data, error } = await supabase.rpc('admin_list_users', {
+    p_search: search || null, p_role: role, p_limit: limit, p_include_test: !!includeTest,
+  });
+  if (error) throw error;
+  return data || [];
+}
+
+/** Audit log entries (admin only), newest first. */
+export async function auditLog(limit = 50) {
+  const { data, error } = await supabase.rpc('admin_audit_log', { p_limit: limit });
+  if (error) throw error;
+  return data || [];
+}
