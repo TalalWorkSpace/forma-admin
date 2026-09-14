@@ -147,3 +147,12 @@ export async function deleteDiscount(code) {
   if (error) throw error;
   return data;
 }
+
+/** Lock (ban) or unlock a user account. Banning forces logout everywhere. */
+export async function setUserBanned(userId, banned, reason = null) {
+  const { data, error } = await supabase.rpc('admin_set_user_banned', {
+    p_user_id: userId, p_banned: banned, p_reason: reason,
+  });
+  if (error) throw error;
+  return data;
+}

@@ -21,7 +21,9 @@ export function render() {
   const result = el('div', {}, spinnerScreen('جاري التحميل'));
 
   const cols = [
-    { label: 'الاسم', render: (r) => r.name || '-' },
+    { label: 'الاسم', render: (r) => r.banned
+        ? el('span', {}, (r.name || '-') + ' ', pill('موقوف', 'warn'))
+        : (r.name || '-') },
     { label: 'الإيميل', render: (r) => el('span', { class: 'mono' }, r.email || '-') },
     { label: 'النوع', render: (r) => pill(r.role === 'coach' ? 'كوتش' : 'متدرب', r.role === 'coach' ? 'ok' : 'info') },
     { label: 'الباقة', render: (r) => pill(TIER_AR[r.tier] || r.tier, r.tier === 'expired' ? 'warn' : (r.tier === 'free' ? 'info' : 'ok')) },

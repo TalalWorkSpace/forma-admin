@@ -2,13 +2,42 @@
 // coaches it also exposes billing actions (extend trial, set tier, custom price)
 // which are admin-gated server-side. Used by the users page (click a row).
 import { el, modal, field, input, select, button, pill, table, spinnerScreen, toast } from './ui.js';
-import { userDetail, extendTrial, setTier, setCustomPrice } from './api.js';
+import { userDetail, extendTrial, setTier, setCustomPrice, setUserBanned } from './api.js';
 
 const TIER_AR = { free: 'مجاني', trial: 'تجربة', starter: 'الأساسية', pro: 'الاحترافية', expired: 'منتهي', basic: 'أساسي', unlimited: 'غير محدود' };
 const pad = (n) => String(n).padStart(2, '0');
 const fmtDate = (s) => { if (!s) return '-'; const d = new Date(s); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 const fmtDateTime = (s) => { if (!s) return '-'; const d = new Date(s); return `${fmtDate(s)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 const kv = (k, v) => el('div', { class: 'kv' }, el('span', { class: 'k' }, k), el('span', { class: 'v' }, v ?? '-'));
+
+// -- account status: lock (ban) / unlock any user. `refresh` re-fetches after.
+function accountStatus(d, refresh) {
+  const statusPill = d.banned ? pill('موقوف', 'warn') : pill('نشط', 'ok');
+  const btn = d.banned
+    ? button('الغاء القفل', { variant: 'lime' })
+    : button('قفل الحساب', { variant: 'danger' });
+  btn.addEventListener('click', async () => {
+    const lock = !d.banned;
+    if (lock && !confirm(`قفل حساب ${d.name || d.email}؟ لن يستطيع تسجيل الدخول وسيخرج من كل الأجهزة.`)) return;
+    btn.disabled = true;
+    try {
+      await setUserBanned(d.id, lock);
+      toast(lock ? 'تم قفل الحساب' : 'تم الغاء القفل');
+      refresh();
+    } catch (e) {
+      const m = e?.message || '';
+      toast(m.includes('CANNOT_BAN_SELF') ? 'لا يمكنك قفل حسابك'
+        : m.includes('CANNOT_BAN_ADMIN') ? 'لا يمكن قفل حساب مشرف'
+        : m === 'FORBIDDEN' ? 'ليست لديك صلاحية' : 'تعذر تنفيذ العملية', 'err');
+      btn.disabled = false;
+    }
+  });
+  return el('div', { class: 'detail-sec' },
+    el('h4', {}, 'حالة الحساب'),
+    el('div', { class: 'act-row' },
+      el('div', { class: 'act-lbl' }, 'الحالة'), statusPill,
+      el('div', { style: 'flex:1' }), btn));
+}
 
 // -- billing actions (coaches only). `refresh` re-fetches the modal after a write.
 function billingActions(d, refresh) {
@@ -69,9 +98,10 @@ function detailView(d, refresh) {
     kv('السعر المخصص', priceStr),
     kv('انضم', el('span', { class: 'mono' }, fmtDate(d.created_at))),
     kv('آخر دخول', el('span', { class: 'mono' }, fmtDate(d.last_sign_in_at))),
-    kv('إشعارات Push', d.has_push_token ? 'مفعلة' : 'لا'));
+    kv('إشعارات Push', d.has_push_token ? 'مفعلة' : 'لا'),
+    d.banned ? kv('الحالة', pill('موقوف', 'warn')) : null);
 
-  const sections = [el('div', { class: 'detail-sec' }, head)];
+  const sections = [el('div', { class: 'detail-sec' }, head), accountStatus(d, refresh)];
 
   if (d.role === 'coach' && d.coach) {
     sections.push(el('div', { class: 'detail-sec' },
