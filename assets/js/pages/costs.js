@@ -1,13 +1,14 @@
-// Feature: technical cost calculator - unit economics of running FORMA.
-// Fully client-side (no RPC): fixed cost is built from real verified service
-// prices; EAS and RevenueCat step with users/revenue. admin only (financials).
+// Feature: technical cost - two tabs. Default tab explains the cost model; the
+// second is an interactive calculator. Fully client-side (no RPC). Fixed cost is
+// built from real verified service prices; EAS and RevenueCat step with
+// users/revenue. admin only (financials).
 import { el } from '../ui.js';
 
 export const meta = { id: 'costs', label: 'التكلفة التقنية', icon: 'calc', minRole: 'admin' };
 
 // -- verified real prices (USD, 2026) --
 const USD = { supabase: 25, apple: 99 / 12, easStarter: 19, easProd: 199, easEnt: 1000 };
-const DOMAIN_MO = 50 / 12;                 // .sa domain ~50 SAR/year
+const DOMAIN_MO = 50 / 12;
 
 const fmt = (n, d = 0) => Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 const sar = (n) => (n < 100 ? fmt(n, 1) : fmt(n, 0));
@@ -36,12 +37,105 @@ function model(N, T, price, rate, v, buf) {
   };
 }
 
-const MARKUP = `
-  <div class="page-head">
-    <h1>حاسبة التكلفة التقنية</h1>
-    <p>كم يكلف تشغيل فورما فعليا. حرك المدخلات وشوف تكلفة الكوتش والمتدرب تنزل مع التوسع. كل ريال مبني على سعر خدمة حقيقي، و EAS و RevenueCat يحسبان تلقائيا.</p>
-  </div>
+// ============ tab 1: explanation (general) ============
+const EXPLAIN = `
+  <div class="expl">
+    <p class="expl-lede">كم يكلف تشغيل التطبيق شهريا، وليش كل رقم بهذا الحجم، وكيف تتغير التكلفة كل ما كبرنا. الأرقام مبنية على الأسعار الرسمية الحقيقية للخدمات (بالريال، والدولار = 3.75).</p>
 
+    <div class="expl-sec">
+      <div class="expl-kicker">الفكرة الأساسية</div>
+      <h3>معظم التكلفة ثابتة، فتنزل مع التوسع</h3>
+      <p>أغلب المصاريف <b>ثابتة</b>: تدفعها سواء عندك 10 كوتشز أو 500. الوحيد اللي يكبر مع الاستخدام هو التخزين والتوصيل. يعني كل ما زاد عدد الكوتشز، الثابت ينوزع على عدد أكبر، فتكلفة خدمة الكوتش الواحد <b>تنزل بسرعة</b>. النتيجة: التكلفة تبدأ بسيطة وتصير أبسط مع النمو.</p>
+      <div class="expl-callout">القاعدة باختصار: <b>السيرفرات رخيصة وتبقى رخيصة. اللي يكبر مع نجاحك هو حصة RevenueCat (1% من الدخل) والتخزين، مو البنية التحتية.</b></div>
+    </div>
+
+    <div class="expl-sec">
+      <div class="expl-kicker">البنود</div>
+      <h3>من وش تتكون التكلفة</h3>
+      <p>ست خدمات مدفوعة (أغلبها رمزي) وأربع مجانية. كل بند وسعره الحقيقي ووظيفته:</p>
+      <div class="expl-svc">
+        <div class="expl-item"><div class="nm">Supabase Pro <span class="ib fx">ثابت</span></div><div class="pr">94 ريال / شهر</div><div class="ds">العمود الفقري: قاعدة البيانات + تسجيل الدخول + التخزين + التحديث الحي. الباقة تشمل 100GB تخزين و250GB نقل و100 ألف مستخدم شهري. ($25، ثابت لين نتجاوز الحصص.)</div></div>
+        <div class="expl-item"><div class="nm">Apple Developer <span class="ib fx">ثابت</span></div><div class="pr">31 ريال / شهر</div><div class="ds">رسوم إلزامية لنشر أي تطبيق على متجر Apple. تدفع سنويا $99 = ~31 ريال بالشهر. لا يمكن الاستغناء عنها ل iOS.</div></div>
+        <div class="expl-item"><div class="nm">Expo EAS <span class="ib sc">يتدرج</span></div><div class="pr">مجاني ثم 71 ثم 746</div><div class="ds">بناء التطبيق وتحديثاته اللحظية (OTA). مجاني حتى ~1000 مستخدم نشط، ثم Starter ($19) حتى 3000، ثم Production ($199) حتى 50 ألف. يقفز درجة كل ما عبرنا عتبة.</div></div>
+        <div class="expl-item"><div class="nm">RevenueCat <span class="ib sc">يتدرج مع الدخل</span></div><div class="pr">مجاني ثم 1%</div><div class="ds">يدير الاشتراكات والمشتريات داخل التطبيق. مجاني حتى دخل شهري ~9,375 ريال ($2,500)، وبعدها 1% من الدخل. يكبر مع <b>الدخل</b> مو مع عدد المستخدمين.</div></div>
+        <div class="expl-item"><div class="nm">الدومين .sa <span class="ib fx">ثابت</span></div><div class="pr">4 ريال / شهر</div><div class="ds">اسم النطاق forma-app.sa. يدفع سنويا ~50 ريال = ~4 ريال بالشهر.</div></div>
+        <div class="expl-item"><div class="nm">التخزين والتوصيل <span class="ib sc">مع الاستخدام</span></div><div class="pr">~0 حاليا</div><div class="ds">صور وفيديوهات التقدم. شبه مجاني الآن لأننا داخل حصة Supabase. يبدأ يكلف بس لو تجاوزنا 100GB تخزين او 250GB نقل شهري.</div></div>
+        <div class="expl-item"><div class="nm">Resend · Sentry · Cloudflare · FCM <span class="ib">مجاني</span></div><div class="pr">0 ريال</div><div class="ds">رموز الدخول بالإيميل (Resend)، تتبع الأخطاء (Sentry)، الحماية و CDN و SSL (Cloudflare)، والإشعارات (FCM). كلها ضمن الباقات المجانية عند حجمنا.</div></div>
+      </div>
+    </div>
+
+    <div class="expl-sec">
+      <div class="expl-kicker">النمو</div>
+      <h3>كيف تتغير التكلفة مع كل مرحلة</h3>
+      <p>على أساس 30 متدرب لكل كوتش وسعر اشتراك 200 ريال. لاحظ القفزة عند 100 كوتش: هناك يعبر عدد المستخدمين 3000 فتقفز باقة EAS ل Production، ثم تكمل التكلفة نزول لكل كوتش كل ما وزعناها على أكثر.</p>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>المرحلة</th><th>كوتشز</th><th>متدربون</th><th>الإجمالي/شهر</th><th>لكل كوتش</th><th>لكل متدرب</th><th>% الدخل</th></tr></thead>
+        <tbody>
+          <tr><td>الإطلاق</td><td class="mono">30</td><td class="mono">900</td><td class="mono">~319</td><td class="mono">10.6</td><td class="mono">0.35</td><td class="mono">5.3%</td></tr>
+          <tr><td>نمو مبكر</td><td class="mono">100</td><td class="mono">3,000</td><td class="mono">~1,475</td><td class="mono up">14.8</td><td class="mono">0.49</td><td class="mono">7.4%</td></tr>
+          <tr><td>توسع</td><td class="mono">250</td><td class="mono">7,500</td><td class="mono">~2,225</td><td class="mono down">8.9</td><td class="mono">0.30</td><td class="mono">4.5%</td></tr>
+          <tr><td>كبير</td><td class="mono">600</td><td class="mono">18,000</td><td class="mono">~3,975</td><td class="mono down">6.6</td><td class="mono">0.22</td><td class="mono">3.3%</td></tr>
+          <tr><td>ضخم</td><td class="mono">1,000</td><td class="mono">30,000</td><td class="mono">~5,975</td><td class="mono down">6.0</td><td class="mono">0.20</td><td class="mono">3.0%</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note" style="margin-top:9px">الأرقام بالريال، تقديرية ومحافظة. القفزة عند 100 كوتش سببها عتبة EAS وتختفي مع مزيد من النمو.</div>
+    </div>
+
+    <div class="expl-sec">
+      <div class="expl-kicker">التركيبة عند التوسع</div>
+      <h3>وين تروح الفلوس عند 1,000 كوتش</h3>
+      <p>عند أكبر مرحلة (30 ألف مستخدم، دخل 200 ألف ريال)، الإجمالي ~5,975 ريال. البنية التحتية الصافية (Supabase + Apple + دومين) تبقى <b>ضئيلة (~4%)</b>؛ اللي يكبر هو التخزين وحصة RevenueCat.</p>
+      <div class="expl-bar">
+        <span style="width:50.2%;background:#C6FF00">التخزين 50%</span>
+        <span style="width:33.5%;background:#9AD000;color:#08160A">RevenueCat 34%</span>
+        <span style="width:12.5%;background:#E0B23A">EAS 12%</span>
+        <span style="width:3.8%;background:#7C8270"></span>
+      </div>
+      <div class="expl-legend">
+        <div><i style="background:#C6FF00"></i><b>التخزين والتوصيل</b><span class="n mono">~3,000</span></div>
+        <div><i style="background:#9AD000"></i><b>RevenueCat (1%)</b><span class="n mono">~2,000</span></div>
+        <div><i style="background:#E0B23A"></i><b>Expo EAS</b><span class="n mono">~746</span></div>
+        <div><i style="background:#7C8270"></i><b>البنية الثابتة</b><span class="n mono">~229</span></div>
+      </div>
+      <div class="expl-callout" style="margin-top:14px">التخزين هو الأكبر لكنه <b>قابل للتحسين</b> (ضغط الصور، حذف القديم). RevenueCat نسبة ثابتة من الدخل، يعني ما يزعجك إلا وأنت تكسب أصلا. السيرفرات نفسها تبقى ~200 ريال.</div>
+    </div>
+
+    <div class="expl-sec">
+      <div class="expl-kicker">التصحيح</div>
+      <h3>الفرق عن التقدير القديم</h3>
+      <p>التقدير الأول كان فيه أرقام منفوخة وبنود ناقصة. هذا اللي تغير بعد المراجعة مقابل الأسعار الرسمية:</p>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>البند</th><th>التقدير القديم</th><th>الصحيح</th><th>السبب</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">Supabase Pro</td><td class="mono">375 ريال</td><td class="mono down">94 ريال</td><td>السعر الفعلي $25 مو $100</td></tr>
+          <tr><td class="mono">الدومين</td><td class="mono">50/شهر</td><td class="mono down">4/شهر</td><td>السعر سنوي مو شهري</td></tr>
+          <tr><td class="mono">Apple Developer</td><td class="mono">مفقود</td><td class="mono up">+31</td><td>رسوم إلزامية نسيت</td></tr>
+          <tr><td class="mono">RevenueCat</td><td class="mono">مفقود</td><td class="mono up">+1% دخل</td><td>أكبر بند عند التوسع</td></tr>
+        </tbody>
+      </table></div>
+      <div class="expl-compare">
+        <div class="box old"><div class="t">تكلفة الإطلاق - القديم</div><div class="b mono">750 - 1,000</div></div>
+        <div class="box new"><div class="t">تكلفة الإطلاق - الصحيح</div><div class="b mono">~230 - 320</div></div>
+      </div>
+    </div>
+
+    <div class="expl-sec">
+      <div class="expl-kicker">الخلاصة</div>
+      <h3>باختصار</h3>
+      <ul class="expl-take">
+        <li><span class="ck"></span><div><b>الإطلاق يكلف ~320 ريال بالشهر</b>، ومعظمه Supabase + رسوم Apple.</div></li>
+        <li><span class="ck"></span><div><b>تكلفة الكوتش الواحد تنزل مع النمو</b>، من ~11 ريال نحو 6 ريال، لأن الثابت ينوزع.</div></li>
+        <li><span class="ck"></span><div><b>البنية التقنية دايما أقل من ~7% من الدخل</b> وتنزل نحو 3% مع التوسع.</div></li>
+        <li><span class="ck"></span><div><b>اللي يكبر مع النجاح هو التخزين وحصة RevenueCat (1%)</b>، والتخزين قابل للتحسين. السيرفرات تبقى رخيصة.</div></li>
+      </ul>
+    </div>
+
+    <div class="note" style="margin-top:26px;padding-top:18px;border-top:1px solid var(--dark-line)">تكلفة تشغيل البنية التقنية فقط. لا تشمل رسوم متجر Apple على المشتريات (15% الى 30%) لأنها خصم من الإيراد وليست تكلفة تشغيل، ولا الرواتب او التسويق. الأسعار محققة من صفحات التسعير الرسمية (2026).</div>
+  </div>
+`;
+
+// ============ tab 2: calculator ============
+const CALC = `
   <div class="cost-kpis">
     <div class="cost-kpi hero"><span class="lbl">تكلفة الكوتش / شهر</span><b class="n" data-k="coach">-</b><span class="foot" data-k="coach_f"></span></div>
     <div class="cost-kpi"><span class="lbl">تكلفة المتدرب / شهر</span><b class="n" data-k="user">-</b><span class="foot" data-k="user_f"></span></div>
@@ -49,63 +143,60 @@ const MARKUP = `
     <div class="cost-kpi"><span class="lbl">من الدخل (infra)</span><b class="n" data-k="pct">-</b><span class="foot" data-k="pct_f"></span></div>
     <div class="cost-kpi"><span class="lbl">الربح لكل كوتش</span><b class="n" data-k="margin">-</b><span class="foot" data-k="margin_f"></span></div>
   </div>
-
   <div class="cost-grid">
     <div class="card">
-      <h3>المدخلات</h3>
-      <div class="sub">القيم الافتراضية سيناريو واقعي متوسط.</div>
+      <h3>المدخلات</h3><div class="sub">القيم الافتراضية سيناريو واقعي متوسط.</div>
       <div class="cost-ctrl"><div class="top"><span>عدد الكوتشز</span><b class="mono" data-v="coaches">50</b></div><input type="range" id="cost_coaches" min="1" max="250" step="1" value="50"></div>
       <div class="cost-ctrl"><div class="top"><span>متدربين لكل كوتش</span><b class="mono" data-v="tpc">30</b></div><input type="range" id="cost_tpc" min="5" max="60" step="1" value="30"></div>
-      <div class="cost-ctrl"><div class="top"><span>سعر اشتراك الكوتش / شهر</span><b class="mono" data-v="price">200</b></div><input type="range" id="cost_price" min="0" max="600" step="10" value="200"><div class="note">يحرك نسبة الدخل والربح، ويفعل رسوم RevenueCat. صفره لتجاهله.</div></div>
+      <div class="cost-ctrl"><div class="top"><span>سعر اشتراك الكوتش / شهر</span><b class="mono" data-v="price">200</b></div><input type="range" id="cost_price" min="0" max="600" step="10" value="200"><div class="note">يحرك نسبة الدخل والربح ويفعل رسوم RevenueCat. صفره لتجاهله.</div></div>
       <div class="cost-row2">
         <div class="cost-ctrl"><div class="top"><span>متغير / متدرب</span><b class="mono" data-v="varc">0.10</b></div><input type="range" id="cost_varc" min="0" max="1.5" step="0.05" value="0.10"></div>
         <div class="cost-ctrl"><div class="top"><span>احتياطي / شهر</span><b class="mono" data-v="buf">100</b></div><input type="range" id="cost_buf" min="0" max="500" step="10" value="100"></div>
       </div>
-      <div class="note">التخزين والنقل شبه مجاني داخل حصة Supabase (100GB تخزين، 250GB نقل). المتغير يبقى قريب من الصفر لين تتجاوز الحصة.</div>
+      <div class="note">التخزين والنقل شبه مجاني داخل حصة Supabase (100GB تخزين، 250GB نقل).</div>
       <div class="cost-ctrl" style="margin-top:14px"><div class="top"><span>سعر الدولار (USD)</span><b class="mono" data-v="rate">3.75</b></div><input type="range" id="cost_rate" min="3.6" max="3.9" step="0.01" value="3.75"></div>
     </div>
-
     <div class="cost-main">
       <div class="card">
-        <h3>التكلفة لكل كوتش مقابل عدد الكوتشز</h3>
-        <div class="sub">الثابت ينوزع كل ما زاد العدد فتنزل التكلفة. القفزات لأعلى عند تغير باقة EAS.</div>
+        <h3>التكلفة لكل كوتش مقابل عدد الكوتشز</h3><div class="sub">الثابت ينوزع كل ما زاد العدد فتنزل التكلفة. القفزات لأعلى عند تغير باقة EAS.</div>
         <div class="cost-chart-wrap"><svg class="cost-chart" data-el="chart" viewBox="0 0 620 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="منحنى التكلفة لكل كوتش"></svg></div>
         <div class="cost-chart-cap"><span class="leg"><i></i> التكلفة/كوتش <i class="d"></i> الأرضية الثابتة</span><span class="now mono" data-el="now"></span></div>
       </div>
-      <div class="card">
-        <h3>من وين تجي التكلفة</h3>
-        <div class="sub">تفصيل الإجمالي الشهري عند الإعداد الحالي.</div>
-        <div class="cost-bd" data-el="bd"></div>
-      </div>
+      <div class="card"><h3>من وين تجي التكلفة</h3><div class="sub">تفصيل الإجمالي الشهري عند الإعداد الحالي.</div><div class="cost-bd" data-el="bd"></div></div>
     </div>
   </div>
-
-  <div class="page-head" style="margin-top:26px;margin-bottom:12px"><h1 style="font-size:18px">سيناريوهات النمو</h1></div>
+  <div class="page-head" style="margin-top:22px;margin-bottom:12px"><h1 style="font-size:18px">سيناريوهات النمو</h1></div>
   <div class="table-wrap"><table class="table"><thead><tr>
     <th>الكوتشز</th><th>المتدربون</th><th>الإجمالي</th><th>لكل كوتش</th><th>لكل متدرب</th><th>% الدخل</th><th data-el="th_m">الربح/كوتش</th>
   </tr></thead><tbody data-el="tbody"></tbody></table></div>
+`;
 
-  <div class="card" style="margin-top:16px">
-    <h3>الأسعار المرجعية (محققة من صفحات التسعير الرسمية)</h3>
-    <div class="cost-src">
-      <div><b>Supabase Pro</b> <span class="mono">$25/شهر</span> يشمل 100GB تخزين و250GB نقل و100k مستخدم.</div>
-      <div><b>Expo EAS</b> <span class="mono">مجاني / $19 / $199</span> يتدرج مع مستخدمي التحديث (OTA).</div>
-      <div><b>Apple Developer</b> <span class="mono">$99/سنة</span> إلزامي ل iOS = ~$8.25/شهر.</div>
-      <div><b>RevenueCat</b> <span class="mono">مجاني ثم 1%</span> مجاني حتى $2,500 دخل شهري ثم 1% من الدخل.</div>
-      <div><b>الدومين .sa</b> <span class="mono">~50 ريال/سنة</span> = ~4 ريال/شهر.</div>
-      <div><b>Resend / Sentry / Cloudflare / FCM</b> <span class="mono">مجاني</span> ضمن الحدود المجانية.</div>
-    </div>
-    <div class="note" style="margin-top:12px">تكلفة البنية التقنية فقط بالريال. لا تشمل رسوم متجر Apple على المشتريات (تخصم من الإيراد، ليست تكلفة تشغيل) ولا الرواتب او التسويق.</div>
+const MARKUP = `
+  <div class="page-head"><h1>التكلفة التقنية</h1><p>شرح تكلفة تشغيل فورما، وحاسبة تفاعلية تجرب فيها السيناريوهات.</p></div>
+  <div class="cost-tabs">
+    <button class="cost-tab active" type="button" data-tab="explain">شرح التكلفة</button>
+    <button class="cost-tab" type="button" data-tab="calc">الحاسبة</button>
   </div>
+  <div class="cost-panel" data-panel="explain">${EXPLAIN}</div>
+  <div class="cost-panel" data-panel="calc" hidden>${CALC}</div>
 `;
 
 export function render() {
   const wrap = el('div', {});
   wrap.innerHTML = MARKUP;
   const q = (sel) => wrap.querySelector(sel);
+
+  // -- tabs --
+  const tabs = wrap.querySelectorAll('.cost-tab');
+  const panels = wrap.querySelectorAll('.cost-panel');
+  tabs.forEach((t) => t.addEventListener('click', () => {
+    tabs.forEach((x) => x.classList.toggle('active', x === t));
+    panels.forEach((p) => { p.hidden = p.getAttribute('data-panel') !== t.getAttribute('data-tab'); });
+  }));
+
+  // -- calculator wiring --
   const set = (k, html) => { const n = wrap.querySelector(`[data-k="${k}"]`); if (n) n.innerHTML = html; };
   const val = (k, t) => { const n = wrap.querySelector(`[data-v="${k}"]`); if (n) n.textContent = t; };
-
   const ids = ['coaches', 'tpc', 'price', 'varc', 'buf', 'rate'];
   const read = () => ({
     N: +q('#cost_coaches').value, T: +q('#cost_tpc').value, price: +q('#cost_price').value,
@@ -117,7 +208,7 @@ export function render() {
     const pc = (n) => model(n, s.T, s.price, s.rate, s.v, s.buf).perCoach;
     const asym = s.T * s.v + (s.price > 0 && (s.N * s.price / s.rate) > 2500 ? 0.01 * s.price : 0);
     const vals = []; for (let n = 1; n <= maxN; n++) vals.push(pc(n));
-    let yMax = Math.max(...vals.slice(0, 60)) * 1.05;
+    const yMax = Math.max(...vals.slice(0, 60)) * 1.05;
     const x = (n) => pl + (n - 1) / (maxN - 1) * (W - pl - pr);
     const y = (v) => pt + (1 - v / yMax) * (H - pt - pb);
     let path = '', area = `M${x(1)},${y(0)}`;
