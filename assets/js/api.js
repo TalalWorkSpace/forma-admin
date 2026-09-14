@@ -90,3 +90,60 @@ export async function paymentStats() {
   if (error) throw error;
   return data;
 }
+
+// == billing writes (admin only; server re-checks require_admin('admin')) =====
+
+/** Add days to a coach's trial / subscription window. */
+export async function extendTrial(userId, days) {
+  const { data, error } = await supabase.rpc('admin_extend_trial', { p_user_id: userId, p_days: days });
+  if (error) throw error;
+  return data;
+}
+
+/** Manually set a coach's tier (+ optional expiry in days; null = no expiry). */
+export async function setTier(userId, tier, days = null) {
+  const { data, error } = await supabase.rpc('admin_set_tier', { p_user_id: userId, p_tier: tier, p_days: days });
+  if (error) throw error;
+  return data;
+}
+
+/** Record (or clear, price=null) a custom agreed price for one coach. */
+export async function setCustomPrice(userId, price, currency = 'SAR', note = null) {
+  const { data, error } = await supabase.rpc('admin_set_custom_price', {
+    p_user_id: userId, p_price: price, p_currency: currency, p_note: note,
+  });
+  if (error) throw error;
+  return data;
+}
+
+/** Create a discount code. */
+export async function createDiscount({ code, kind, value, tier, durationDays, maxUses, expiresAt, note }) {
+  const { data, error } = await supabase.rpc('admin_create_discount', {
+    p_code: code, p_kind: kind, p_value: value, p_tier: tier || null,
+    p_duration_days: durationDays || null, p_max_uses: maxUses || null,
+    p_expires_at: expiresAt || null, p_note: note || null,
+  });
+  if (error) throw error;
+  return data;
+}
+
+/** All discount codes, newest first. */
+export async function listDiscounts() {
+  const { data, error } = await supabase.rpc('admin_list_discounts');
+  if (error) throw error;
+  return data || [];
+}
+
+/** Activate / deactivate a discount code. */
+export async function toggleDiscount(code, active) {
+  const { data, error } = await supabase.rpc('admin_toggle_discount', { p_code: code, p_active: active });
+  if (error) throw error;
+  return data;
+}
+
+/** Permanently delete a discount code. */
+export async function deleteDiscount(code) {
+  const { data, error } = await supabase.rpc('admin_delete_discount', { p_code: code });
+  if (error) throw error;
+  return data;
+}

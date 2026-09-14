@@ -196,3 +196,13 @@ a { color:var(--lime); text-decoration:none; }
 .kv .k { font-size:11px; color:var(--on-dark-3); }
 .kv .v { font-size:14px; color:var(--on-dark); }
 @media (max-width:520px){ .kv-grid { grid-template-columns:1fr; } }
+
+/* == native select == */
+.sel { width:100%; background:var(--dark-3); border:1px solid var(--dark-line); color:var(--on-dark); border-radius:var(--r-sm); padding:11px 12px; font:inherit; font-size:14px; cursor:pointer; }
+.sel:focus { outline:none; border-color:var(--lime); }
+
+/* == billing action rows in the detail modal == */
+.act-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.act-row .act-lbl { flex:0 0 96px; font-size:13px; color:var(--on-dark-2); }
+.act-row input, .act-row .sel { flex:1 1 90px; width:auto; min-width:80px; }
+.act-row .btn { flex:0 0 auto; }

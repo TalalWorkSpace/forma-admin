@@ -48,6 +48,13 @@ export const field = (label, control, hint) =>
 export const input = (attrs = {}) => el('input', attrs);
 export const textarea = (attrs = {}) => el('textarea', attrs);
 
+/** Native select. options: [{value,label}]. Returns the <select> element. */
+export const select = (options, initial) => {
+  const s = el('select', { class: 'sel' },
+    ...options.map((o) => el('option', o.value === initial ? { value: o.value, selected: true } : { value: o.value }, o.label)));
+  return s;
+};
+
 export const button = (label, { variant = 'lime', block = false, onClick, id } = {}) =>
   el('button', { class: `btn btn-${variant}${block ? ' btn-block' : ''}`, id, onclick: onClick }, label);
 
