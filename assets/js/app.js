@@ -6,11 +6,12 @@ import * as overview from './pages/overview.js';
 import * as users from './pages/users.js';
 import * as payments from './pages/payments.js';
 import * as discounts from './pages/discounts.js';
+import * as costs from './pages/costs.js';
 import * as notifications from './pages/notifications.js';
 import * as audit from './pages/audit.js';
 
 // Order = sidebar order; the first the user can see is the landing page.
-const ROUTES = [overview, users, payments, discounts, notifications, audit];   // ← register future pages here
+const ROUTES = [overview, users, payments, discounts, costs, notifications, audit];   // ← register future pages here
 const ROLE_RANK = { viewer: 1, editor: 2, admin: 3 };
 const root = document.getElementById('app');
 

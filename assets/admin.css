@@ -206,3 +206,59 @@ a { color:var(--lime); text-decoration:none; }
 .act-row .act-lbl { flex:0 0 96px; font-size:13px; color:var(--on-dark-2); }
 .act-row input, .act-row .sel { flex:1 1 90px; width:auto; min-width:80px; }
 .act-row .btn { flex:0 0 auto; }
+
+/* == technical cost calculator page == */
+.cost-kpis{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin:22px 0 }
+.cost-kpi{ background:var(--dark-2); border:1px solid var(--dark-line); border-radius:var(--r); padding:15px 15px 13px; display:flex; flex-direction:column; gap:3px }
+.cost-kpi.hero{ background:var(--lime-soft,rgba(198,255,0,0.10)); border-color:rgba(198,255,0,0.25) }
+.cost-kpi .lbl{ font-size:12px; color:var(--on-dark-3); font-weight:600 }
+.cost-kpi .n{ font-family:'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; font-weight:700; font-size:26px; letter-spacing:-.02em; line-height:1.05; color:var(--on-dark); direction:ltr }
+.cost-kpi.hero .n{ color:var(--lime) }
+.cost-kpi .n .u{ font-size:12px; color:var(--on-dark-3); font-weight:500; margin-inline-start:3px }
+.cost-kpi .n.pos{ color:var(--success) } .cost-kpi .n.neg{ color:var(--error) }
+.cost-kpi .foot{ font-size:11px; color:var(--on-dark-3) }
+
+.cost-grid{ display:grid; grid-template-columns:340px 1fr; gap:16px; align-items:start }
+.cost-main{ display:flex; flex-direction:column; gap:16px }
+.cost-ctrl{ margin-bottom:16px }
+.cost-ctrl .top{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:9px; font-size:13.5px; font-weight:600 }
+.cost-ctrl .top b{ color:var(--lime); font-size:15px; direction:ltr }
+.cost-ctrl .note, .cost-main .note, .card .note{ font-size:11px; color:var(--on-dark-3); margin-top:7px; line-height:1.5 }
+.cost-row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px }
+.cost-grid input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:5px; border-radius:999px; background:var(--dark-3); border:1px solid var(--dark-line); outline:none; cursor:pointer }
+.cost-grid input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--lime); border:2px solid var(--dark-2); cursor:pointer }
+.cost-grid input[type=range]::-moz-range-thumb{ width:16px; height:16px; border-radius:50%; background:var(--lime); border:2px solid var(--dark-2); cursor:pointer }
+
+.cost-chart-wrap{ direction:ltr; overflow-x:auto; margin-top:8px }
+svg.cost-chart{ width:100%; height:auto; display:block; min-width:420px }
+.cost-chart .ax{ font-family:'JetBrains Mono',monospace; font-size:10px; fill:var(--on-dark-3) }
+.cost-chart .gl{ stroke:var(--dark-line); stroke-width:1 }
+.cost-chart .curve{ fill:none; stroke:var(--lime); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round }
+.cost-chart .area{ fill:rgba(198,255,0,0.08) }
+.cost-chart .asymp{ stroke:var(--on-dark-3); stroke-width:1; stroke-dasharray:4 4; opacity:.6 }
+.cost-chart .mk{ stroke:var(--on-dark-3); stroke-width:1; stroke-dasharray:3 3 }
+.cost-chart .dot{ fill:var(--lime); stroke:var(--dark-2); stroke-width:2 }
+.cost-chart-cap{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap }
+.cost-chart-cap .leg{ font-size:11px; color:var(--on-dark-3) }
+.cost-chart-cap .leg i{ display:inline-block; width:14px; height:0; border-top:2px solid var(--lime); vertical-align:middle; margin:0 4px }
+.cost-chart-cap .leg i.d{ border-top:1px dashed var(--on-dark-3) }
+.cost-chart-cap .now{ font-size:12px; color:var(--lime); font-weight:700; direction:ltr }
+
+.cost-bd .brow{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--dark-line) }
+.cost-bd .brow:last-of-type{ border-bottom:0 }
+.cost-bd .brow .k{ display:flex; flex-direction:column; gap:1px }
+.cost-bd .brow .k b{ font-size:13px; font-weight:600 }
+.cost-bd .brow .k span{ font-size:11px; color:var(--on-dark-3) }
+.cost-bd .brow .v{ font-weight:600; font-size:14px; direction:ltr }
+.cost-bd .brow.tot{ border-top:2px solid var(--on-dark); border-bottom:0; margin-top:6px; padding-top:12px }
+.cost-bd .brow.tot .k b{ font-weight:800 } .cost-bd .brow.tot .v{ font-weight:800; font-size:16px; color:var(--lime) }
+.cost-chip{ font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; background:var(--success-bg); color:var(--success); margin-inline-start:6px }
+
+.cost-src{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:9px 22px; margin-top:6px }
+.cost-src div{ font-size:12.5px; color:var(--on-dark-2); line-height:1.5 }
+.cost-src b{ color:var(--on-dark); font-weight:600 }
+.cost-src .mono{ color:var(--lime); direction:ltr; font-weight:600 }
+tr.cost-active td{ background:rgba(198,255,0,0.08); font-weight:700; color:var(--lime) }
+
+@media (max-width:820px){ .cost-kpis{ grid-template-columns:repeat(2,1fr) } .cost-grid{ grid-template-columns:1fr } .cost-kpi.hero{ grid-column:span 2 } }
+@media (max-width:460px){ .cost-kpis{ grid-template-columns:1fr } .cost-kpi.hero{ grid-column:auto } }
