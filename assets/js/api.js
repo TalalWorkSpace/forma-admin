@@ -62,3 +62,31 @@ export async function auditLog(limit = 50) {
   if (error) throw error;
   return data || [];
 }
+
+/** Daily new-signup series for the growth chart. */
+export async function growth(days = 30, includeTest = false) {
+  const { data, error } = await supabase.rpc('admin_growth', { p_days: days, p_include_test: !!includeTest });
+  if (error) throw error;
+  return data || [];
+}
+
+/** Full read-only detail for one user (profile, role stats, recent payments). */
+export async function userDetail(userId) {
+  const { data, error } = await supabase.rpc('admin_user_detail', { p_user_id: userId });
+  if (error) throw error;
+  return data;
+}
+
+/** FORMA-revenue events (coaches paying FORMA), newest first. */
+export async function payments(limit = 50, includeTest = false) {
+  const { data, error } = await supabase.rpc('admin_payments', { p_limit: limit, p_include_test: !!includeTest });
+  if (error) throw error;
+  return data || [];
+}
+
+/** Revenue overview counters. */
+export async function paymentStats() {
+  const { data, error } = await supabase.rpc('admin_payment_stats');
+  if (error) throw error;
+  return data;
+}

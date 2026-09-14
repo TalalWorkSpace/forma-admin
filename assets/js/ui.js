@@ -25,6 +25,9 @@ const PATHS = {
   history:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
   refresh:'<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/>',
+  card:   '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  tag:    '<path d="M20.6 13.4 12 22l-9-9V4h9l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/>',
+  close:  '<path d="M18 6 6 18"/><path d="M6 6l12 12"/>',
 };
 export const icon = (name, size = 18) =>
   el('span', { class: 'i', html:
@@ -78,13 +81,53 @@ export const pill = (text, kind = 'info') => el('span', { class: `pill ${kind}` 
  * Data table. cols: [{ key, label, render?(row) }]. Renders inside a
  * horizontally scrollable wrapper so wide tables never break the phone layout.
  */
-export function table(cols, rows, { empty = 'لا توجد بيانات' } = {}) {
+export function table(cols, rows, { empty = 'لا توجد بيانات', onRow } = {}) {
   if (!rows || rows.length === 0) return el('div', { class: 'empty' }, empty);
   return el('div', { class: 'table-wrap' },
     el('table', { class: 'table' },
       el('thead', {}, el('tr', {}, ...cols.map(c => el('th', {}, c.label)))),
       el('tbody', {}, ...rows.map(r =>
-        el('tr', {}, ...cols.map(c => el('td', {}, c.render ? c.render(r) : (r[c.key] ?? '-'))))))));
+        el('tr', onRow ? { class: 'tr-click', onclick: () => onRow(r) } : {},
+          ...cols.map(c => el('td', {}, c.render ? c.render(r) : (r[c.key] ?? '-'))))))));
+}
+
+/**
+ * Modal overlay. Returns { node, close }. Closes on backdrop click, the X, or
+ * Escape. `onClose` runs after removal. Append node to document.body.
+ */
+export function modal(title, content, { onClose } = {}) {
+  const closeBtn = el('button', { class: 'modal-x', 'aria-label': 'اغلاق' }, icon('close', 18));
+  const box = el('div', { class: 'modal-box reveal', role: 'dialog', 'aria-modal': 'true' },
+    el('div', { class: 'modal-head' }, el('h3', {}, title), closeBtn),
+    el('div', { class: 'modal-body' }, content));
+  const node = el('div', { class: 'modal-overlay' }, box);
+  function close() {
+    document.removeEventListener('keydown', onKey);
+    node.remove();
+    onClose && onClose();
+  }
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  node.addEventListener('click', (e) => { if (e.target === node) close(); });
+  closeBtn.addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
+  return { node, close, setBody: (n) => box.querySelector('.modal-body').replaceChildren(n) };
+}
+
+/**
+ * Minimal dependency-free SVG bar chart. series: [{ label, value }].
+ * Bars use the lime accent; the tallest sets the scale.
+ */
+export function barChart(series, { height = 120, valueFmt = (v) => v } = {}) {
+  const max = Math.max(1, ...series.map((s) => s.value));
+  const n = series.length || 1;
+  const gap = 2, bw = Math.max(1, (100 - gap * n) / n);
+  const bars = series.map((s, i) => {
+    const h = (s.value / max) * 100;
+    const x = i * (bw + gap);
+    return `<rect x="${x.toFixed(2)}" y="${(100 - h).toFixed(2)}" width="${bw.toFixed(2)}" height="${h.toFixed(2)}" rx="0.6" fill="var(--lime)" opacity="${s.value ? 0.9 : 0.15}"><title>${s.label}: ${valueFmt(s.value)}</title></rect>`;
+  }).join('');
+  return el('div', { class: 'chart', html:
+    `<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:${height}px" shape-rendering="crispEdges">${bars}</svg>` });
 }
 
 let toastTimer;

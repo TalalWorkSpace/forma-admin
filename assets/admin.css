@@ -168,3 +168,31 @@ a { color:var(--lime); text-decoration:none; }
 .pill-row { display:flex; flex-wrap:wrap; gap:8px; }
 .row-2 { display:grid; grid-template-columns:1fr auto; gap:14px; align-items:center; margin-top:14px; }
 @media (max-width:560px){ .stats { grid-template-columns:1fr 1fr; } .row-2 { grid-template-columns:1fr; } }
+
+/* == clickable rows == */
+.table .tr-click { cursor:pointer; transition:background .12s var(--ease); }
+.table .tr-click:hover { background:var(--dark-3); }
+.muted-sm { font-size:11px; color:var(--on-dark-3); }
+
+/* == growth chart == */
+.chart { margin-top:6px; }
+.chart svg rect { transition:opacity .2s var(--ease); }
+.chart-x { display:flex; justify-content:space-between; margin-top:6px; font-size:11px; color:var(--on-dark-3); font-family:'JetBrains Mono',monospace; }
+
+/* == modal == */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.62); display:flex; align-items:flex-start; justify-content:center; padding:40px 16px; z-index:100; overflow-y:auto; -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); }
+.modal-box { background:var(--dark-2); border:1px solid var(--dark-line); border-radius:var(--r-lg); width:100%; max-width:640px; box-shadow:0 24px 60px rgba(0,0,0,0.5); }
+.modal-head { display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:1px solid var(--dark-line); }
+.modal-head h3 { font-size:17px; font-weight:800; }
+.modal-x { background:var(--dark-3); border:1px solid var(--dark-line); color:var(--on-dark-2); width:34px; height:34px; border-radius:var(--r-sm); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
+.modal-x:hover { color:var(--on-dark); border-color:var(--on-dark-3); }
+.modal-body { padding:22px; }
+
+/* == detail sections / key-value grid == */
+.detail-sec + .detail-sec { margin-top:20px; padding-top:20px; border-top:1px solid var(--dark-line); }
+.detail-sec h4 { font-size:13px; font-weight:800; color:var(--on-dark-2); margin-bottom:12px; font-family:'JetBrains Mono',monospace; letter-spacing:.04em; }
+.kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; }
+.kv { display:flex; flex-direction:column; gap:3px; }
+.kv .k { font-size:11px; color:var(--on-dark-3); }
+.kv .v { font-size:14px; color:var(--on-dark); }
+@media (max-width:520px){ .kv-grid { grid-template-columns:1fr; } }

@@ -4,11 +4,12 @@ import { el, icon, brand, button, field, input, spinnerScreen, toast } from './u
 import { supabase, signIn, signOut, getSession, myAdminRole } from './api.js';
 import * as overview from './pages/overview.js';
 import * as users from './pages/users.js';
+import * as payments from './pages/payments.js';
 import * as notifications from './pages/notifications.js';
 import * as audit from './pages/audit.js';
 
 // Order = sidebar order; the first the user can see is the landing page.
-const ROUTES = [overview, users, notifications, audit];   // ← register future pages here
+const ROUTES = [overview, users, payments, notifications, audit];   // ← register future pages here
 const ROLE_RANK = { viewer: 1, editor: 2, admin: 3 };
 const root = document.getElementById('app');
 

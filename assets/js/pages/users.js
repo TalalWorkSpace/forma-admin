@@ -1,6 +1,7 @@
 // Feature: users list - search + filter by role, newest first. viewer+.
 import { el, card, field, input, segmented, toggle, table, pill, spinnerScreen } from '../ui.js';
 import { listUsers } from '../api.js';
+import { openUserDetail } from '../userdetail.js';
 
 export const meta = { id: 'users', label: 'المستخدمون', icon: 'users', minRole: 'viewer' };
 
@@ -33,7 +34,7 @@ export function render() {
     try {
       const rows = await listUsers({ search: search.value.trim(), role: role.get(), limit: 100, includeTest: includeTest.get() });
       count.textContent = `${rows.length} مستخدم` + (rows.length === 100 ? ' (أول 100)' : '');
-      result.replaceChildren(table(cols, rows, { empty: 'لا يوجد مستخدمون مطابقون' }));
+      result.replaceChildren(table(cols, rows, { empty: 'لا يوجد مستخدمون مطابقون', onRow: (r) => openUserDetail(r.id) }));
     } catch (e) {
       count.textContent = '';
       result.replaceChildren(el('div', { class: 'empty' },
