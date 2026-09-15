@@ -16,6 +16,13 @@ export async function signIn(email, password) {
 export const signOut = () => supabase.auth.signOut();
 export const getSession = async () => (await supabase.auth.getSession()).data.session;
 
+/** Change the signed-in user's own password (no email needed). */
+export async function changePassword(newPassword) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+  return true;
+}
+
 /** The signed-in user's admin role, or null if not an admin. */
 export async function myAdminRole() {
   const { data, error } = await supabase.rpc('my_admin_role');

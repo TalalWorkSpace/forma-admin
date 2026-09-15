@@ -1,7 +1,7 @@
 // FORMA Admin - shell: auth gate, admin verification, sidebar routing.
 // Add a feature = add a page module to ROUTES; the sidebar and guard update.
-import { el, icon, brand, button, field, input, spinnerScreen, toast } from './ui.js';
-import { supabase, signIn, signOut, getSession, myAdminRole } from './api.js';
+import { el, icon, brand, button, field, input, modal, spinnerScreen, toast } from './ui.js';
+import { supabase, signIn, signOut, getSession, myAdminRole, changePassword } from './api.js';
 import * as overview from './pages/overview.js';
 import * as users from './pages/users.js';
 import * as payments from './pages/payments.js';
@@ -56,6 +56,34 @@ function renderRejected() {
       button('تسجيل الخروج', { variant: 'ghost', block: true, onClick: async () => { await signOut(); renderLogin(); } }))));
 }
 
+// == change own password (self-service; no email needed) =====================
+function openChangePassword() {
+  const p1 = input({ type: 'password', placeholder: '••••••••', autocomplete: 'new-password' });
+  const p2 = input({ type: 'password', placeholder: '••••••••', autocomplete: 'new-password' });
+  const saveBtn = button('حفظ كلمة المرور', { block: true });
+  const m = modal('تغيير كلمة المرور',
+    el('div', {},
+      field('كلمة المرور الجديدة', p1, '6 أحرف على الأقل'),
+      field('تأكيد كلمة المرور', p2),
+      saveBtn));
+  document.body.append(m.node);
+  const submit = async () => {
+    if (p1.value.length < 6) { toast('كلمة المرور 6 أحرف على الأقل', 'err'); return; }
+    if (p1.value !== p2.value) { toast('كلمتا المرور غير متطابقتين', 'err'); return; }
+    saveBtn.disabled = true; saveBtn.textContent = 'جاري الحفظ';
+    try {
+      await changePassword(p1.value);
+      toast('تم تغيير كلمة المرور');
+      m.close();
+    } catch (e) {
+      toast(e?.message || 'تعذر تغيير كلمة المرور', 'err');
+      saveBtn.disabled = false; saveBtn.textContent = 'حفظ كلمة المرور';
+    }
+  };
+  saveBtn.addEventListener('click', submit);
+  p2.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+}
+
 // == authed shell ============================================================
 function renderShell(activeId) {
   root.className = 'app authed';
@@ -73,12 +101,14 @@ function renderShell(activeId) {
     el('div', { class: 'who' },
       el('div', { class: 'name' }, ctx.email),
       el('div', { class: 'role' }, (ctx.role || '').toUpperCase())),
-    el('div', { style: 'padding:10px 4px 0' },
+    el('div', { style: 'padding:10px 4px 0;display:flex;flex-direction:column;gap:8px' },
+      button('تغيير كلمة المرور', { variant: 'ghost', block: true, onClick: openChangePassword }),
       button('تسجيل الخروج', { variant: 'ghost', block: true, onClick: async () => { await signOut(); renderLogin(); } })));
 
   const main = el('main', { class: 'main' },
     el('div', { class: 'topbar' }, el('div'),
-      el('span', { class: 'mobile-signout' },
+      el('span', { class: 'mobile-signout', style: 'gap:8px' },
+        button('كلمة المرور', { variant: 'ghost', onClick: openChangePassword }),
         button('خروج', { variant: 'ghost', onClick: async () => { await signOut(); renderLogin(); } }))),
     active ? active.render() : el('div', { class: 'page-head' }, el('h1', {}, 'لا صفحات متاحة لدورك')));
 
