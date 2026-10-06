@@ -52,10 +52,13 @@ function billingActions(d, refresh) {
     catch (e) { toast(e?.message === 'FORBIDDEN' ? 'ليست لديك صلاحية' : 'تعذر التمديد', 'err'); extendBtn.disabled = false; }
   });
 
-  // set tier
+  // set tier. Only the live plan_tiers rows are offered: trial/starter/pro/expired.
+  // 'free' (and basic/unlimited) were retired in 20260912d and dropped from
+  // plan_tiers, and profiles.tier has an FK to it, so offering «مجاني» here always
+  // failed. TIER_AR still maps the legacy ids for display of any old value.
   const tierSel = select([
     { value: 'trial', label: 'تجربة' }, { value: 'starter', label: 'الأساسية' },
-    { value: 'pro', label: 'الاحترافية' }, { value: 'expired', label: 'منتهي' }, { value: 'free', label: 'مجاني' },
+    { value: 'pro', label: 'الاحترافية' }, { value: 'expired', label: 'منتهي' },
   ], d.tier);
   const tierDays = input({ type: 'number', min: '1', step: '1', placeholder: 'أيام (اختياري)' });
   const tierBtn = button('تطبيق', {});
