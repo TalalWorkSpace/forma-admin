@@ -422,3 +422,8 @@ tr.cost-active td{ background:rgba(198,255,0,0.08); font-weight:700; color:var(-
 
 @media (max-width:860px){ .pb-week, .pb-flow { grid-template-columns:repeat(2,minmax(0,1fr)); } .pb-proj dl, .pb-meters { grid-template-columns:minmax(0,1fr); } .pb-grid3 { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width:560px){ .pb-week, .pb-grid2, .pb-grid3, .pb-upd dl, .pb-flow { grid-template-columns:minmax(0,1fr); } }
+
+/* Mohammed's Playbook is English -> left-to-right inside the RTL panel */
+.pb { direction:ltr; text-align:left; }
+.pb-table th, .pb-table td { text-align:left; }
+.pb-foot { text-align:left; }
