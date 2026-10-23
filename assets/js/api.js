@@ -163,3 +163,19 @@ export async function setUserBanned(userId, banned, reason = null) {
   if (error) throw error;
   return data;
 }
+
+// == intern playbook (one editable JSON document; viewer reads, editor saves) ==
+
+/** The intern playbook state (the whole document). */
+export async function getPlaybook() {
+  const { data, error } = await supabase.rpc('admin_get_playbook');
+  if (error) throw error;
+  return data || {};
+}
+
+/** Replace the whole playbook document. Returns { ok, updated_at }. */
+export async function savePlaybook(state) {
+  const { data, error } = await supabase.rpc('admin_save_playbook', { p_state: state });
+  if (error) throw error;
+  return data;
+}
