@@ -91,9 +91,9 @@ export async function payments(limit = 50, includeTest = false) {
   return data || [];
 }
 
-/** Revenue overview counters. */
-export async function paymentStats() {
-  const { data, error } = await supabase.rpc('admin_payment_stats');
+/** Revenue overview counters + MRR estimate + active subscribers per tier. */
+export async function paymentStats(includeTest = false) {
+  const { data, error } = await supabase.rpc('admin_payment_stats', { p_include_test: !!includeTest });
   if (error) throw error;
   return data;
 }

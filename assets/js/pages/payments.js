@@ -18,10 +18,19 @@ const fmtDateTime = (s) => {
 };
 const money = (r) => (r.price ? `${r.price} ${r.currency || ''}`.trim() : '-');
 const tierFlow = (r) => (r.tier_before || r.tier_after) ? `${r.tier_before || '-'} > ${r.tier_after || '-'}` : '-';
+const fmtInt = (n) => (Number(n) || 0).toLocaleString('en-US');
+const fmtMrr = (n) => Math.round(Number(n) || 0).toLocaleString('en-US');
 
 export function render() {
   const includeTest = toggle('شمل حسابات الاختبار', false);
-  const statRow = el('div', { class: 'stats' }, stat('-', 'كوتشز مشتركون'), stat('-', 'على تجربة'), stat('-', 'أحداث (30 يوم)'));
+  const statRow = el('div', { class: 'stats' },
+    stat('-', 'MRR تقريبي (ر.س)'),
+    stat('-', 'أساسية'),
+    stat('-', 'احترافية'),
+    stat('-', 'على تجربة'),
+    stat('-', 'أحداث (30 يوم)'));
+  const mrrNote = el('p', { class: 'muted-sm', style: 'margin:6px 2px 14px' },
+    'MRR تقريبي = المشتركون النشطون في كل باقة مضروبين بالسعر الشهري. الاشتراك السنوي يحسب بسعره الشهري، والأسعار المخصصة مراعاة.');
   const logWrap = el('div', {}, spinnerScreen('جاري التحميل'));
 
   const cols = [
@@ -39,11 +48,13 @@ export function render() {
   async function load() {
     logWrap.replaceChildren(spinnerScreen('جاري التحميل'));
     try {
-      const [st, rows] = await Promise.all([paymentStats(), payments(100, includeTest.get())]);
+      const [st, rows] = await Promise.all([paymentStats(includeTest.get()), payments(100, includeTest.get())]);
       statRow.replaceChildren(
-        stat(st.paying_coaches, 'كوتشز مشتركون'),
-        stat(st.trial_coaches, 'على تجربة'),
-        stat(st.last_30d, 'أحداث (30 يوم)'));
+        stat(fmtMrr(st.mrr_approx), 'MRR تقريبي (ر.س)'),
+        stat(fmtInt(st.starter_active), 'أساسية'),
+        stat(fmtInt(st.pro_active), 'احترافية'),
+        stat(fmtInt(st.trial_coaches), 'على تجربة'),
+        stat(fmtInt(st.last_30d), 'أحداث (30 يوم)'));
       logWrap.replaceChildren(rows.length
         ? table(cols, rows)
         : el('div', { class: 'empty' },
@@ -62,5 +73,6 @@ export function render() {
       el('p', {}, 'اشتراكات الكوتشز في فورما وسجل أحداث الدفع مع اسم المستخدم.')),
     el('div', { style: 'margin-bottom:16px' }, includeTest.node),
     statRow,
+    mrrNote,
     card('سجل المدفوعات', 'أحدث أحداث RevenueCat لكل كوتش.', logWrap));
 }
