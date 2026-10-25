@@ -27,6 +27,7 @@ const PATHS = {
   refresh:'<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/>',
   card:   '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
   tag:    '<path d="M20.6 13.4 12 22l-9-9V4h9l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
   close:  '<path d="M18 6 6 18"/><path d="M6 6l12 12"/>',
   calc:   '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8"/><path d="M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h4"/><path d="M8 15v4"/>',
 };

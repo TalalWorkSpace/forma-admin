@@ -70,6 +70,27 @@ export async function auditLog(limit = 50) {
   return data || [];
 }
 
+/** List panel admins (admin only). */
+export async function listAdmins() {
+  const { data, error } = await supabase.rpc('admin_list_admins');
+  if (error) throw error;
+  return data || [];
+}
+
+/** Grant (or change) an admin role by email (admin only). */
+export async function grantAdmin(email, role = 'admin') {
+  const { data, error } = await supabase.rpc('admin_grant_admin', { p_email: email, p_role: role });
+  if (error) throw error;
+  return data;
+}
+
+/** Revoke admin access by user id (admin only). */
+export async function revokeAdmin(userId) {
+  const { data, error } = await supabase.rpc('admin_revoke_admin', { p_user_id: userId });
+  if (error) throw error;
+  return data;
+}
+
 /** Daily new-signup series for the growth chart. */
 export async function growth(days = 30, includeTest = false) {
   const { data, error } = await supabase.rpc('admin_growth', { p_days: days, p_include_test: !!includeTest });
